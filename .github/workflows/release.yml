@@ -52,6 +52,7 @@ jobs:
           assert.equal(pkg.name, '@ipfans/dsh-purge-rebuild');
           assert.equal(process.env.GITHUB_REF_NAME, `v${pkg.version}`);
           assert.equal(pkg.repository.url, `git+https://github.com/${process.env.GITHUB_REPOSITORY}.git`);
+          assert.equal(pkg.contentPolicy.class, 'dual-use');
           assert.equal(fs.readFileSync('release-notes.md', 'utf8').split(/\r?\n/)[0], `# ${pkg.version}`);
           JS
       - name: Check package entry points
@@ -59,13 +60,14 @@ jobs:
           node --check client.js
           node --input-type=module -e "import './lib/index.js'"
           npm pack --dry-run
-      - name: Publish to npm via OIDC
+      - name: Stage npm package via OIDC
         run: |
           package="$(node -p "require('./package.json').name")"
           version="$(node -p "require('./package.json').version")"
           dist_tag=latest
           if [[ "$version" == *-* ]]; then dist_tag=next; fi
           npm pack --json > "$RUNNER_TEMP/pack.json"
+          jq -e '.[0].files | any(.path == "DISCLOSURE")' "$RUNNER_TEMP/pack.json" >/dev/null
           archive="$(jq -r '.[0].filename' "$RUNNER_TEMP/pack.json")"
           if npm view "$package@$version" dist.integrity --json > "$RUNNER_TEMP/published.json"; then
             PACK_FILE="$RUNNER_TEMP/pack.json" PUBLISHED_FILE="$RUNNER_TEMP/published.json" node --input-type=module <<'JS'
@@ -78,7 +80,8 @@ jobs:
           JS
           else
             jq -e '.error.code == "E404"' "$RUNNER_TEMP/published.json" >/dev/null
-            npm publish "$archive" --access public --tag "$dist_tag"
+            npm stage publish "$archive" --access public --tag "$dist_tag"
+            echo "npm $package@$version is staged. A maintainer must approve it with 2FA before installation." >> "$GITHUB_STEP_SUMMARY"
           fi
       - name: Publish GitHub Release
         env:
@@ -87,8 +90,14 @@ jobs:
           version="$(node -p "require('./package.json').version")"
           zip="dsh-purge-rebuild-${version}.zip"
           git archive --format=zip --prefix="dsh-purge-rebuild-${version}/" --output="$zip" HEAD
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          const notes = fs.readFileSync('release-notes.md', 'utf8').split('\n# ')[0].trim();
+          fs.writeFileSync(`${process.env.RUNNER_TEMP}/release-notes.md`,
+            `${notes}\n\n源码包可直接安装。npm 版本须完成 staged approval 后才可安装，实际状态以 npm 为准。\n`);
+          JS
           if ! gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            args=(release create "$GITHUB_REF_NAME" --verify-tag --title "$GITHUB_REF_NAME" --notes-file release-notes.md)
+            args=(release create "$GITHUB_REF_NAME" --verify-tag --title "$GITHUB_REF_NAME" --notes-file "$RUNNER_TEMP/release-notes.md")
             if [[ "$version" == *-* ]]; then args+=(--prerelease); fi
             gh "${args[@]}"
           fi

@@ -1,3 +1,10 @@
+# 1.1.73
+
+- 在包元数据与根目录 `DISCLOSURE` 声明双用途内容，覆盖宿主补丁与内置演练台；插件更新保留该声明。
+- 按 npm 的双用途发布要求，将 GitHub Actions OIDC 上传改为 `npm stage publish`，维护者完成 2FA 批准后才对外提供 npm 版本。
+- GitHub Release 只展示当前版本说明，并区分源码包可用与 npm 待批准状态。
+- 包含 1.1.72 的 Harness 0.2.1 兼容修复、桌面重启修复和文档整理。
+
 # 1.1.72
 
 - Rebuild 包名改为 `@ipfans/dsh-purge-rebuild`，更新源指向 `ipfans/dsh-purge-rebuild`；CLI 和数据目录保持兼容。原作者：小杨（YuJunZhiXue），原项目：https://github.com/YuJunZhiXue/dsh-purge 。

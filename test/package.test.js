@@ -18,6 +18,9 @@ const require = createRequire(import.meta.url);
 test("scoped package exports, Cordis references and browser loader agree", () => {
   assert.equal(pkg.name, PACKAGE_NAME);
   assert.equal(pkg.repository.url, "git+https://github.com/ipfans/dsh-purge-rebuild.git");
+  assert.equal(pkg.contentPolicy.class, "dual-use");
+  assert.ok(pkg.files.includes("DISCLOSURE"));
+  assert.ok(read("DISCLOSURE").includes(PACKAGE_NAME));
   for (const suffix of ["", "/redteam", "/redteam/store", "/redteam/ui", "/redteam/tools", "/client"]) {
     assert.ok(fs.existsSync(require.resolve(`${PACKAGE_NAME}${suffix}`)));
   }

@@ -1,6 +1,6 @@
 {
   "name": "@ipfans/dsh-purge-rebuild",
-  "version": "1.1.72",
+  "version": "1.1.73",
   "description": "DeepSeek Harness plugin for host patches, prompts, rules, skills, and authorized security drills.",
   "type": "module",
   "main": "lib/index.js",
@@ -32,6 +32,7 @@
     "README.md",
     "README.zh-CN.md",
     "README.en.md",
+    "DISCLOSURE",
     "LICENSE",
     "LICENSE-COMMERCIAL.md"
   ],
@@ -42,6 +43,9 @@
     "build:client": "node scripts/build-client.mjs"
   },
   "license": "SEE LICENSE IN LICENSE",
+  "contentPolicy": {
+    "class": "dual-use"
+  },
   "keywords": [
     "dsh",
     "dsh-plugin",

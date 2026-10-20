@@ -1,0 +1,34 @@
+Dual-use content declaration
+
+Package: @ipfans/dsh-purge-rebuild
+Repository: https://github.com/ipfans/dsh-purge-rebuild
+Policy: https://docs.npmjs.com/policies/dual-use/
+
+This DeepSeek Harness plugin is intended for local model and host robustness
+evaluation and security assessments of systems the operator owns or is
+authorized to test.
+
+Security-relevant functionality:
+
+- Patches the operator's installed Harness packages and prompt configuration,
+  including approval, sandbox, instruction and tool-execution behavior.
+- Manages prompts, rules, skills and agent presets, with a local security drill
+  workspace for recording assets, findings and sessions.
+- Includes agent runbooks for reconnaissance, vulnerability assessment,
+  credential testing, tunneling, lateral movement and remote-shell handling.
+  These capabilities can affect remote systems when invoked by the operator.
+- Includes an optional setup script that downloads third-party security tools.
+  Plugin updates also access npm or GitHub.
+- Applies and reverts local file changes, and can stop and restart the local
+  Harness processes during installation and updates.
+
+These capabilities can be misused. The intended use is scoped, authorized
+assessment and reproducible local evaluation. Operators are responsible for
+target authorization, credentials and the effects of executed tools.
+
+The bundled drill module's upstream declaration is retained at
+docs/redteam-upstream-DISCLOSURE. This declaration covers the combined package,
+including the host patch functionality.
+
+Report package issues at:
+https://github.com/ipfans/dsh-purge-rebuild/issues

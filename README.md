@@ -36,6 +36,8 @@ dsh plugin --profile web add .
 
 ### 从 npm 安装
 
+npm 版本经维护者批准后可安装；若仍显示 `0.0.0-stage`，请先从源码安装。
+
 ```sh
 dsh plugin --profile web add @ipfans/dsh-purge-rebuild
 ```

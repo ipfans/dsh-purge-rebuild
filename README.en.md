@@ -36,6 +36,8 @@ For desktop profiles that support CLI installation, replace `web` with `desktop`
 
 ### From npm
 
+npm versions become installable after maintainer approval. If npm still shows `0.0.0-stage`, install from source.
+
 ```sh
 dsh plugin --profile web add @ipfans/dsh-purge-rebuild
 ```
