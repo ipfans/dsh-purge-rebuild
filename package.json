@@ -1,7 +1,7 @@
 {
-  "name": "dsh-purge",
-  "version": "1.1.71",
-  "description": "DeepSeek Harness 破甲：让所有模型都能破甲，不同模型可换不同提示词；默认提示词面向国模「小码酱」。Jailbreak for every model — swap prompts per model. 求 Star 收藏 ⭐ 如要二开，请查看署名要求部分",
+  "name": "@ipfans/dsh-purge-rebuild",
+  "version": "1.1.72",
+  "description": "DeepSeek Harness plugin for host patches, prompts, rules, skills, and authorized security drills.",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
@@ -36,6 +36,8 @@
     "LICENSE-COMMERCIAL.md"
   ],
   "scripts": {
+    "test": "node --test",
+    "prepublishOnly": "npm test",
     "embed-prompt": "node scripts/embed-default-prompt.mjs",
     "build:client": "node scripts/build-client.mjs"
   },
@@ -57,11 +59,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/YuJunZhiXue/dsh-purge.git"
+    "url": "git+https://github.com/ipfans/dsh-purge-rebuild.git"
   },
-  "homepage": "https://github.com/YuJunZhiXue/dsh-purge#readme",
+  "homepage": "https://github.com/ipfans/dsh-purge-rebuild#readme",
   "bugs": {
-    "url": "https://github.com/YuJunZhiXue/dsh-purge/issues"
+    "url": "https://github.com/ipfans/dsh-purge-rebuild/issues"
   },
   "dsh": {
     "bundle": {
@@ -79,13 +81,14 @@
     },
     "install": {
       "preferred": "tarball",
-      "tarball": "https://github.com/YuJunZhiXue/dsh-purge/archive/refs/heads/master.tar.gz",
-      "zip": "https://github.com/YuJunZhiXue/dsh-purge/archive/refs/heads/master.zip",
-      "git": "https://github.com/YuJunZhiXue/dsh-purge.git"
+      "tarball": "https://github.com/ipfans/dsh-purge-rebuild/archive/refs/heads/master.tar.gz",
+      "zip": "https://github.com/ipfans/dsh-purge-rebuild/archive/refs/heads/master.zip",
+      "git": "https://github.com/ipfans/dsh-purge-rebuild.git"
     }
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.1"
@@ -93,5 +96,5 @@
   "engines": {
     "node": ">=18"
   },
-  "dshTarget": "0.2.0-rc.2"
+  "dshTarget": "0.2.1-rc.2"
 }

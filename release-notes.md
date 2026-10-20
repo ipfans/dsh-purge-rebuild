@@ -1,3 +1,12 @@
+# 1.1.72
+
+- Rebuild 包名改为 `@ipfans/dsh-purge-rebuild`，更新源指向 `ipfans/dsh-purge-rebuild`；CLI 和数据目录保持兼容。原作者：小杨（YuJunZhiXue），原项目：https://github.com/YuJunZhiXue/dsh-purge 。
+- 修复 #132 / #142 的 0.2.1 `requiredContexts` 装配匹配，保留必需上下文；关键补丁不匹配时明确报错并阻止重启。
+- 修复 #114 / #136 的未注册 `cwd` 自动注入，保留用户自定义模板。
+- 修复 #142 的换包退出竞态，补充 PowerShell 日志与遗留解包目录清理；runtime junction 使用安装目录绝对路径。runtime 丢失来源尚未复现，不自动重建 runtime。
+- 新增 Node 内置回归测试、跨平台 Actions 检查，以及 tag 触发的 npm OIDC trusted publishing。首次发布与 npm 侧绑定见 `docs/publishing.md`。
+- 精简中英文 README，补充开发与协作指南；发布工作流校验已存在 npm 版本的完整性，支持首次本地发布后继续创建 GitHub Release。
+
 # 1.1.71
 
 ## 中文

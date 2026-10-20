@@ -2,61 +2,94 @@ name: Release
 
 on:
   push:
-    branches:
-      - master
+    tags:
+      - 'v*'
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: release-${{ github.repository }}
   cancel-in-progress: false
 
 jobs:
-  release:
-    if: github.repository == 'YuJunZhiXue/dsh-purge'
-    runs-on: ubuntu-latest
+  test:
+    if: github.repository == 'ipfans/dsh-purge-rebuild' && startsWith(github.ref, 'refs/tags/v')
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
-          fetch-depth: 0
+          node-version: '24'
+          package-manager-cache: false
+      - run: npm test
 
-      - name: Syntax-check plugin entry
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
+      - name: Install npm with trusted publishing support
+        run: npm install --global npm@11
+      - name: Validate release tag and package identity
         run: |
-          node --check lib/index.js
-          node --check lib/core.js
-          node --check lib/reapply.js
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import fs from 'node:fs';
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          assert.equal(pkg.name, '@ipfans/dsh-purge-rebuild');
+          assert.equal(process.env.GITHUB_REF_NAME, `v${pkg.version}`);
+          assert.equal(pkg.repository.url, `git+https://github.com/${process.env.GITHUB_REPOSITORY}.git`);
+          assert.equal(fs.readFileSync('release-notes.md', 'utf8').split(/\r?\n/)[0], `# ${pkg.version}`);
+          JS
+      - name: Check package entry points
+        run: |
+          node --check client.js
           node --input-type=module -e "import './lib/index.js'"
-
+          npm pack --dry-run
+      - name: Publish to npm via OIDC
+        run: |
+          package="$(node -p "require('./package.json').name")"
+          version="$(node -p "require('./package.json').version")"
+          dist_tag=latest
+          if [[ "$version" == *-* ]]; then dist_tag=next; fi
+          npm pack --json > "$RUNNER_TEMP/pack.json"
+          archive="$(jq -r '.[0].filename' "$RUNNER_TEMP/pack.json")"
+          if npm view "$package@$version" dist.integrity --json > "$RUNNER_TEMP/published.json"; then
+            PACK_FILE="$RUNNER_TEMP/pack.json" PUBLISHED_FILE="$RUNNER_TEMP/published.json" node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import fs from 'node:fs';
+          const [pack] = JSON.parse(fs.readFileSync(process.env.PACK_FILE, 'utf8'));
+          const published = JSON.parse(fs.readFileSync(process.env.PUBLISHED_FILE, 'utf8'));
+          assert.equal(published, pack.integrity, 'Published version differs from this tag');
+          console.log('Identical npm version already published; continuing GitHub Release.');
+          JS
+          else
+            jq -e '.error.code == "E404"' "$RUNNER_TEMP/published.json" >/dev/null
+            npm publish "$archive" --access public --tag "$dist_tag"
+          fi
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set -euo pipefail
           version="$(node -p "require('./package.json').version")"
-          tag="v${version}"
-          if gh release view "$tag" >/dev/null 2>&1; then
-            echo "already published: $tag"
-            exit 0
-          fi
-          first="$(head -n 1 release-notes.md | tr -d '\r')"
-          if [ "$first" != "# ${version}" ]; then
-            echo "release-notes.md 第一行必须是 # ${version}，现在是: ${first}"
-            exit 1
-          fi
-          zip="dsh-purge-${version}.zip"
-          if git rev-parse -q --verify "refs/tags/${tag}^{}" >/dev/null; then
-            commit="$(git rev-parse "refs/tags/${tag}^{}")"
-            git archive --format=zip --prefix="dsh-purge-${version}/" --output="$zip" "$commit"
-            gh release create "$tag" --title "$tag" --notes-file release-notes.md
-          else
-            git archive --format=zip --prefix="dsh-purge-${version}/" --output="$zip" HEAD
-            args=(release create "$tag" --target "$GITHUB_SHA" --title "$tag" --notes-file release-notes.md)
-            case "$version" in
-              *beta*|*alpha*|*rc*) args+=(--prerelease) ;;
-            esac
+          zip="dsh-purge-rebuild-${version}.zip"
+          git archive --format=zip --prefix="dsh-purge-rebuild-${version}/" --output="$zip" HEAD
+          if ! gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            args=(release create "$GITHUB_REF_NAME" --verify-tag --title "$GITHUB_REF_NAME" --notes-file release-notes.md)
+            if [[ "$version" == *-* ]]; then args+=(--prerelease); fi
             gh "${args[@]}"
           fi
-          test -s "$zip"
-          gh release upload "$tag" "$zip" --clobber
-          echo "published https://github.com/YuJunZhiXue/dsh-purge/releases/tag/${tag}"
+          gh release upload "$GITHUB_REF_NAME" "$zip" --clobber

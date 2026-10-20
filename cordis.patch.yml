@@ -28,14 +28,14 @@
   config:
     includeHarnessIdentity: false
     personaPrefix: ""
-    personaSuffix: Your working directory is {{cwd}}.
+    personaSuffix: ""
 
 - id: dsh-purge
   inject: [systemPrompt, tools]
 
 - insert:
     - id: dsh-purge
-      name: 'dsh-purge'
+      name: '@ipfans/dsh-purge-rebuild'
       inject: [systemPrompt, tools]
       config:
         enabled: true
@@ -57,14 +57,14 @@
 
     # 演练台：预设 + 技能落地（本插件 lib/redteam）
     - id: dsh-purge-redteam
-      name: dsh-purge/redteam
+      name: '@ipfans/dsh-purge-rebuild/redteam'
 
     # 演练台事实库（SQLite），数据在 $DSH_HOME/redteam
     - id: dsh-purge-redteam-store
-      name: dsh-purge/redteam/store
+      name: '@ipfans/dsh-purge-rebuild/redteam/store'
       config:
         root: !!js dshHomePath('redteam')
 
     # 演练台 HTTP 桥 POST /redteam/api
     - id: dsh-purge-redteam-ui
-      name: dsh-purge/redteam/ui
+      name: '@ipfans/dsh-purge-rebuild/redteam/ui'

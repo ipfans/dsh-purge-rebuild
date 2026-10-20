@@ -1,4 +1,4 @@
-window.__ModuleLoader__.load({ id: "dsh-purge", factory: (require) => {
+window.__ModuleLoader__.load({ id: "@ipfans/dsh-purge-rebuild", factory: (require) => {
 
 		var module = { exports: {} };
 		var exports = module.exports;
